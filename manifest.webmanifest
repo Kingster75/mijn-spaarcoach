@@ -1,0 +1,10 @@
+{
+  "name": "Mijn Spaarcoach",
+  "short_name": "Spaarcoach",
+  "description": "Persoonlijk spaaroverzicht met CSV-import van meerdere banken",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f8f6",
+  "theme_color": "#145c4b",
+  "icons": []
+}

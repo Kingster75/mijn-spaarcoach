@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#145c4b">
+<title>Mijn Spaarcoach</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--green:#145c4b;--mint:#e8f4ef;--ink:#18312b;--muted:#64756f;--line:#dce7e2;--bg:#f5f8f6;--white:#fff;--red:#b83a3a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--green);color:white;padding:22px 18px 18px}header h1{font-size:23px;margin:0 0 5px}header p{margin:0;color:#d8eee5;font-size:13px}
+main{max-width:900px;margin:auto;padding:14px 14px 40px}.tabs{display:flex;gap:7px;overflow:auto;padding:5px 0 12px}
+.tabs button{border:1px solid var(--line);background:white;color:var(--ink);border-radius:22px;padding:10px 14px;white-space:nowrap;font-weight:600}
+.tabs button.active{background:var(--green);color:white;border-color:var(--green)}
+.panel{display:none}.panel.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.card,.section{background:white;border:1px solid var(--line);border-radius:15px;padding:15px;margin-bottom:12px;box-shadow:0 2px 8px #173b2d08}
+.card small,.muted{color:var(--muted)}.value{font-size:22px;font-weight:750;margin-top:5px}.positive{color:var(--green)}.negative{color:var(--red)}
+h2{font-size:18px;margin:4px 0 12px}h3{font-size:15px;margin:0 0 10px}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 5px}
+input,select,button,textarea{font:inherit}input,select{width:100%;padding:11px;border:1px solid #cbd9d2;border-radius:10px;background:white;color:var(--ink)}
+button.primary{background:var(--green);color:white;border:0;border-radius:10px;padding:12px 16px;font-weight:700}
+button.secondary{background:var(--mint);color:var(--green);border:1px solid #c9e0d5;border-radius:10px;padding:10px 13px;font-weight:650}
+button.danger{background:#fff1f1;color:var(--red);border:1px solid #f0cccc;border-radius:10px;padding:9px 12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.progress{height:11px;background:#e7eeea;border-radius:20px;overflow:hidden;margin:10px 0}.progress span{display:block;height:100%;background:#26936f;width:0}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:600}
+.tablewrap{overflow:auto}.amount{white-space:nowrap;font-weight:700}.hint{background:#f0f6f2;border-radius:10px;padding:11px;font-size:13px;color:#38584c;line-height:1.45}
+.status{font-size:13px;margin-top:9px;color:var(--green)}.empty{color:var(--muted);padding:18px 5px;text-align:center}
+footer{font-size:12px;color:var(--muted);padding:10px 2px}
+@media(min-width:650px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}}
+</style>
+</head>
+<body>
+<header><h1>Mijn Spaarcoach</h1><p>Grip op je geld. Slimmer sparen. Meerdere banken in één overzicht.</p></header>
+<main>
+<nav class="tabs" aria-label="Hoofdnavigatie">
+<button class="active" data-tab="overzicht">Overzicht</button><button data-tab="importeren">Bank importeren</button><button data-tab="transacties">Transacties</button><button data-tab="doelen">Spaardoel</button><button data-tab="instellingen">Instellingen</button>
+</nav>
+<section id="overzicht" class="panel active">
+<div class="cards">
+<div class="card"><small>Inkomsten deze maand</small><div class="value positive" id="income">€ 0,00</div></div>
+<div class="card"><small>Uitgaven deze maand</small><div class="value" id="expenses">€ 0,00</div></div>
+<div class="card"><small>Over na uitgaven</small><div class="value" id="leftover">€ 0,00</div></div>
+<div class="card"><small>Huidig spaargeld</small><div class="value" id="savings">€ 0,00</div></div>
+</div>
+<div class="section"><h2>Je spaardoel</h2><div id="goalText" class="muted">Stel een spaardoel in bij Spaardoel.</div><div class="progress"><span id="goalBar"></span></div><div id="goalProgress" class="muted"></div></div>
+<div class="section"><h2>Waar gaat je geld naartoe?</h2><div id="categorySummary" class="muted">Importeer transacties om je uitgaven te bekijken.</div></div>
+<div class="section"><h2>Spaarcoach-tip</h2><div id="tip" class="hint">Importeer je banktransacties om persoonlijke bespaartips te ontvangen.</div></div>
+</section>
+
+<section id="importeren" class="panel">
+<div class="section">
+<h2>Banktransacties importeren</h2>
+<p class="muted">Download bij je bank een transactieoverzicht als CSV-bestand en selecteer het hieronder. Je kunt bestanden van meerdere banken toevoegen.</p>
+<label for="bank">Van welke bank komt het bestand?</label>
+<select id="bank"><option>ING</option><option>Rabobank</option><option>ABN AMRO</option><option>bunq</option><option>ASN Bank</option><option>SNS</option><option>RegioBank</option><option>Triodos</option><option>Knab</option><option>Andere bank / automatisch herkennen</option></select>
+<label for="csvfile">CSV-bestand</label><input id="csvfile" type="file" accept=".csv,text/csv">
+<div class="actions"><button class="primary" id="importBtn">Importeer transacties</button></div>
+<div id="importStatus" class="status" aria-live="polite"></div>
+</div>
+<div class="section"><h3>Hoe werkt dit?</h3><div class="hint">De app probeert datum, omschrijving, bedrag en tegenrekening automatisch te herkennen. Banken gebruiken verschillende CSV-indelingen. Als een kolom niet herkend wordt, kun je het bestand eventueel opnieuw exporteren met datum, omschrijving en bedrag als kolommen. Dubbele transacties worden zoveel mogelijk overgeslagen.</div></div>
+</section>
+
+<section id="transacties" class="panel">
+<div class="section"><h2>Transacties</h2>
+<div class="row"><div><label for="filterBank">Bank</label><select id="filterBank"><option value="">Alle banken</option></select></div><div><label for="filterType">Type</label><select id="filterType"><option value="">Alles</option><option value="income">Inkomsten</option><option value="expense">Uitgaven</option></select></div></div>
+<div class="tablewrap"><table><thead><tr><th>Datum / bank</th><th>Omschrijving</th><th>Categorie</th><th>Bedrag</th></tr></thead><tbody id="transactionRows"></tbody></table></div>
+<div class="actions"><button class="secondary" id="exportBtn">Exporteer overzicht (CSV)</button><button class="danger" id="clearBtn">Wis alle transacties</button></div>
+</div>
+</section>
+
+<section id="doelen" class="panel">
+<div class="section"><h2>Spaardoel instellen</h2>
+<label for="goalName">Waarvoor spaar je?</label><input id="goalName" placeholder="Bijvoorbeeld vakantie of buffer">
+<div class="row"><div><label for="goalAmount">Doelbedrag (€)</label><input id="goalAmount" type="number" min="0" step=".01" placeholder="2500"></div><div><label for="currentSavings">Huidig spaargeld (€)</label><input id="currentSavings" type="number" min="0" step=".01" placeholder="500"></div></div>
+<label for="monthlyTarget">Gewenst bedrag per maand (€)</label><input id="monthlyTarget" type="number" min="0" step=".01" placeholder="150">
+<div class="actions"><button class="primary" id="saveGoal">Bewaar spaardoel</button></div><div id="goalStatus" class="status"></div>
+</div>
+<div class="section"><h3>Handmatige transactie toevoegen</h3>
+<div class="row"><div><label for="manualDate">Datum</label><input id="manualDate" type="date"></div><div><label for="manualBank">Bank / rekening</label><input id="manualBank" placeholder="Contant of ING"></div></div>
+<label for="manualDesc">Omschrijving</label><input id="manualDesc" placeholder="Bijvoorbeeld salaris of boodschappen">
+<div class="row"><div><label for="manualAmount">Bedrag (€) — uitgave als negatief bedrag</label><input id="manualAmount" type="number" step=".01" placeholder="-45,50"></div><div><label for="manualCategory">Categorie</label><select id="manualCategory"><option>Overig</option><option>Salaris</option><option>Wonen</option><option>Boodschappen</option><option>Vervoer</option><option>Horeca</option><option>Abonnementen</option><option>Gezondheid</option><option>Winkelen</option><option>Overboekingen</option></select></div></div>
+<div class="actions"><button class="secondary" id="addManual">Voeg transactie toe</button></div><div id="manualStatus" class="status"></div>
+</div>
+</section>
+
+<section id="instellingen" class="panel">
+<div class="section"><h2>Gegevens en privacy</h2><div class="hint">Transacties en spaardoelen worden lokaal in de opslag van deze browser op je apparaat bewaard. Er wordt geen verbinding met je bank gemaakt en er worden geen bankgegevens naar een server verstuurd. Wis browsergegevens niet als je je overzicht wilt behouden. Maak regelmatig een CSV-export als reservekopie.</div>
+<div class="actions"><button class="secondary" id="backupBtn">Download back-up</button><label class="secondary" style="display:inline-block;margin:0;cursor:pointer">Herstel back-up<input id="backupFile" type="file" accept=".json,application/json" style="display:none"></label></div>
+<p class="muted">Ondersteuning voor CSV-bestanden verschilt per bank en exportinstelling. Controleer na import altijd of bedragen en datums goed zijn ingelezen.</p>
+</div></section>
+<footer>Mijn Spaarcoach • Prototype 1.0 • Geen financieel advies. Controleer je transacties altijd met je bankoverzicht.</footer>
+</main>
+<script>
+const KEY='mijnSpaarcoachDataV1';
+const CATS=['Salaris','Wonen','Boodschappen','Vervoer','Horeca','Abonnementen','Gezondheid','Winkelen','Overboekingen','Overig'];
+let db={transactions:[],goal:{name:'',amount:0,current:0,monthly:0}};
+try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved&&Array.isArray(saved.transactions))db=saved;}catch(e){}
+const money=n=>new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'}).format(Number(n)||0);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function save(){localStorage.setItem(KEY,JSON.stringify(db));render();}
+function parseDate(v){
+ if(!v)return ''; let s=String(v).trim();
+ let m=s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);if(m)return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+ m=s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/);if(m){let y=m[3].length===2?'20'+m[3]:m[3];return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;}
+ return '';
+}
+function parseMoney(v){
+ if(typeof v==='number')return v;let s=String(v??'').replace(/[€\s]/g,'').replace(/[^\d,.-]/g,'');
+ if(!s)return NaN;
+ if(s.includes(',')&&s.includes('.')){if(s.lastIndexOf(',')>s.lastIndexOf('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(/,/g,'');}
+ else if(s.includes(','))s=s.replace(',','.');
+ return Number(s);
+}
+function splitCSV(text){
+ let first=text.split(/\r?\n/).find(x=>x.trim())||'';let delim=(first.match(/;/g)||[]).length>(first.match(/,/g)||[]).length?';':(first.match(/\t/g)||[]).length>(first.match(/,/g)||[]).length?'\t':',';
+ let rows=[],row=[],cell='',q=false;
+ for(let i=0;i<text.length;i++){let c=text[i];if(c==='"'){if(q&&text[i+1]==='"'){cell+='"';i++;}else q=!q;}else if(c===delim&&!q){row.push(cell);cell='';}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell='';}else cell+=c;}
+ row.push(cell);if(row.some(x=>x.trim()))rows.push(row);return rows;
+}
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');}
+function findCol(headers,patterns){return headers.findIndex(h=>patterns.some(p=>norm(h).includes(p)));}
+function category(desc,amount){
+ let d=norm(desc);
+ if(amount>0&&/(salaris|loon|salary|payroll|uitkering|toeslag)/.test(d))return 'Salaris';
+ if(/huur|hypotheek|woning|energ|waternet|gemeente|waterschap/.test(d))return 'Wonen';
+ if(/albert|jumbo|lidl|aldi|plus|ahold|supermarkt|boodschap|dirk/.test(d))return 'Boodschappen';
+ if(/shell|esso|bp|tango|ov|ns|arriva|parkeren|tank|benzine/.test(d))return 'Vervoer';
+ if(/restaurant|cafe|café|thuisbezorgd|deliveroo|mcdonald|starbucks/.test(d))return 'Horeca';
+ if(/netflix|spotify|videoland|disney|amazonprime| abonnement|tele2|vodafone|kpn|ziggo/.test(d))return 'Abonnementen';
+ if(/apotheek|huisarts|tandarts|ziekenhuis/.test(d))return 'Gezondheid';
+ if(/bolcom|amazon|hema|action|primark|mediamarkt|coolblue/.test(d))return 'Winkelen';
+ if(/overboeking|transfer|ideal|incasso eigen rekening/.test(d))return 'Overboekingen';
+ return amount>0?'Overig':'Overig';
+}
+function makeId(t){return [t.date,t.amount.toFixed(2),norm(t.description),norm(t.bank)].join('|');}
+function importCSV(text,bank){
+ const rows=splitCSV(text.replace(/^\uFEFF/,''));if(rows.length<2)throw Error('Het bestand bevat geen transactieregels.');
+ let headers=rows[0].map(x=>x.trim());
+ let dateI=findCol(headers,['datum','date','boekdatum','transactiedatum','valutadatum']);
+ let descI=findCol(headers,['omschrijving','description','naamtegenpartij','tegenpartij','naam','mededeling','details','reden','memo']);
+ let amountI=findCol(headers,['bedrag','amount','mutatie','bedragin','bedraguit']);
+ let debitI=findCol(headers,['af','debet','debit']);let creditI=findCol(headers,['bij','credit']);
+ let currencyI=findCol(headers,['valuta','currency']);
+ if(dateI<0||descI<0||(amountI<0&&debitI<0&&creditI<0))throw Error('Kolommen niet herkend. Nodig: datum, omschrijving en bedrag (of af/bij).');
+ let added=0,dupes=0;
+ rows.slice(1).forEach(r=>{
+  let date=parseDate(r[dateI]);let description=(r[descI]||'').trim();if(!date||!description)return;
+  let amount=amountI>=0?parseMoney(r[amountI]):0;
+  if(amountI<0){let debit=parseMoney(r[debitI]),credit=parseMoney(r[creditI]);amount=(Number.isFinite(credit)?Math.abs(credit):0)-(Number.isFinite(debit)?Math.abs(debit):0);}
+  if(!Number.isFinite(amount)||amount===0)return;
+  let t={date,description,amount,bank,category:category(description,amount),currency:currencyI>=0?(r[currencyI]||'EUR'):'EUR'};
+  t.id=makeId(t);if(db.transactions.some(x=>x.id===t.id)){dupes++;return;}db.transactions.push(t);added++;
+ });
+ db.transactions.sort((a,b)=>b.date.localeCompare(a.date));return {added,dupes};
+}
+function render(){
+ const now=new Date(),ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+ const month=db.transactions.filter(t=>t.date.startsWith(ym));
+ const inc=month.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0),out=month.filter(t=>t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0);
+ document.getElementById('income').textContent=money(inc);document.getElementById('expenses').textContent=money(out);
+ document.getElementById('leftover').textContent=money(inc-out);document.getElementById('leftover').className='value '+(inc-out>=0?'positive':'negative');
+ document.getElementById('savings').textContent=money(db.goal.current||0);
+ const g=db.goal,percent=g.amount>0?Math.min(100,100*g.current/g.amount):0;
+ document.getElementById('goalText').textContent=g.name?`${g.name}: ${money(g.current)} van ${money(g.amount)}`:'Stel een spaardoel in bij Spaardoel.';
+ document.getElementById('goalBar').style.width=percent+'%';document.getElementById('goalProgress').textContent=g.amount>0?`${percent.toFixed(1)}% bereikt • Nog ${money(Math.max(0,g.amount-g.current))}`:'Nog geen doelbedrag ingesteld.';
+ let cats={};month.filter(t=>t.amount<0).forEach(t=>cats[t.category]=(cats[t.category]||0)+Math.abs(t.amount));
+ let sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+ document.getElementById('categorySummary').innerHTML=sorted.length?sorted.slice(0,6).map(([c,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)"><span>${esc(c)}</span><b>${money(v)}</b></div>`).join(''):'Nog geen uitgaven geïmporteerd voor deze maand.';
+ let tip='Je hebt nog weinig transacties. Importeer een paar maanden om patronen te ontdekken.';
+ if(sorted.length){let [c,v]=sorted[0];tip=`Je grootste uitgavencategorie deze maand is ${c} (${money(v)}). Bekijk of je hier maandelijks een klein bedrag kunt besparen.`;if(inc>0&&out>inc)tip+=' Je uitgaven zijn hoger dan je inkomsten; controleer vooral terugkerende kosten.';}
+ document.getElementById('tip').textContent=tip;
+ const banks=[...new Set(db.transactions.map(t=>t.bank))].sort();let fb=document.getElementById('filterBank'),old=fb.value;fb.innerHTML='<option value="">Alle banken</option>'+banks.map(b=>`<option>${esc(b)}</option>`).join('');fb.value=old;
+ let bankFilter=fb.value,typeFilter=document.getElementById('filterType').value;
+ let ts=db.transactions.filter(t=>(!bankFilter||t.bank===bankFilter)&&(!typeFilter||(typeFilter==='income'?t.amount>0:t.amount<0))).slice(0,500);
+ document.getElementById('transactionRows').innerHTML=ts.length?ts.map(t=>`<tr><td>${esc(t.date)}<br><span class="muted">${esc(t.bank)}</span></td><td>${esc(t.description)}</td><td>${esc(t.category)}</td><td class="amount ${t.amount>0?'positive':'negative'}">${money(t.amount)}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">Nog geen transacties. Importeer een CSV-bestand.</td></tr>';
+ document.getElementById('goalName').value=g.name||'';document.getElementById('goalAmount').value=g.amount||'';document.getElementById('currentSavings').value=g.current||'';document.getElementById('monthlyTarget').value=g.monthly||'';
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));}));
+document.getElementById('importBtn').addEventListener('click',async()=>{
+ const f=document.getElementById('csvfile').files[0],status=document.getElementById('importStatus');if(!f){status.textContent='Selecteer eerst een CSV-bestand.';return;}
+ try{const result=importCSV(await f.text(),document.getElementById('bank').value);save();status.textContent=`Klaar: ${result.added} transacties toegevoegd, ${result.dupes} dubbele overgeslagen.`;document.getElementById('csvfile').value='';}catch(e){status.textContent=e.message;}
+});
+document.getElementById('saveGoal').addEventListener('click',()=>{db.goal={name:document.getElementById('goalName').value.trim(),amount:Number(document.getElementById('goalAmount').value)||0,current:Number(document.getElementById('currentSavings').value)||0,monthly:Number(document.getElementById('monthlyTarget').value)||0};save();document.getElementById('goalStatus').textContent='Spaardoel opgeslagen.';});
+document.getElementById('addManual').addEventListener('click',()=>{let date=document.getElementById('manualDate').value,description=document.getElementById('manualDesc').value.trim(),amount=Number(document.getElementById('manualAmount').value),bank=document.getElementById('manualBank').value.trim()||'Handmatig';if(!date||!description||!Number.isFinite(amount)||amount===0){document.getElementById('manualStatus').textContent='Vul datum, omschrijving en een bedrag in (geen nul).';return;}let t={date,description,amount,bank,category:document.getElementById('manualCategory').value,currency:'EUR'};t.id=makeId(t);if(db.transactions.some(x=>x.id===t.id)){document.getElementById('manualStatus').textContent='Deze transactie staat al in het overzicht.';return;}db.transactions.push(t);db.transactions.sort((a,b)=>b.date.localeCompare(a.date));save();document.getElementById('manualStatus').textContent='Transactie toegevoegd.';document.getElementById('manualDesc').value='';document.getElementById('manualAmount').value='';});
+document.getElementById('filterBank').addEventListener('change',render);document.getElementById('filterType').addEventListener('change',render);
+document.getElementById('clearBtn').addEventListener('click',()=>{if(confirm('Weet je zeker dat je alle transacties wilt wissen? Dit kan niet ongedaan worden gemaakt.')){db.transactions=[];save();}});
+document.getElementById('exportBtn').addEventListener('click',()=>{let rows=[['Datum','Bank','Omschrijving','Categorie','Bedrag'],...db.transactions.map(t=>[t.date,t.bank,t.description,t.category,t.amount.toFixed(2).replace('.',',')])];download('mijn-spaarcoach-transacties.csv','\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n'),'text/csv;charset=utf-8');});
+function download(name,data,type){let a=document.createElement('a'),url=URL.createObjectURL(new Blob([data],{type}));a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
+document.getElementById('backupBtn').addEventListener('click',()=>download('mijn-spaarcoach-backup.json',JSON.stringify(db,null,2),'application/json'));
+document.getElementById('backupFile').addEventListener('change',async e=>{let f=e.target.files[0];if(!f)return;try{let d=JSON.parse(await f.text());if(!Array.isArray(d.transactions)||!d.goal)throw Error();db=d;save();alert('Back-up hersteld.');}catch(err){alert('Dit back-upbestand is niet geldig.');}});
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+render();
+</script>
+</body></html>
